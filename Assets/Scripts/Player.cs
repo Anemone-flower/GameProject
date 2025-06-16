@@ -1,17 +1,25 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("이동 및 점프")]
     public float moveSpeed = 5f;
     public float jumpForce = 12f;
 
+    [Header("대시")]
     public float dashSpeed = 10f;
     public float dashDuration = 3f;
     public float dashCooldown = 7f;
-
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
     private bool isDashing = false;
+
+    [Header("체력")]
+    public int maxHP = 100;
+    private int currentHP;
+
+    public Slider hpSlider; // ← HP 슬라이더 UI 연결
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -25,6 +33,13 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
+
+        currentHP = maxHP;
+        if (hpSlider != null)
+        {
+            hpSlider.maxValue = maxHP;
+            hpSlider.value = currentHP;
+        }
     }
 
     void Update()
@@ -37,7 +52,12 @@ public class PlayerController : MonoBehaviour
         // 대시 쿨타임 감소
         if (dashCooldownTimer > 0f)
             dashCooldownTimer -= Time.deltaTime;
-    }
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            TakeDamage(10);
+        }
+    }    
 
     void HandleMovement()
     {
@@ -105,5 +125,30 @@ public class PlayerController : MonoBehaviour
     void OnCollisionExit2D(Collision2D collision)
     {
         isGrounded = false;
+    }
+
+    // ✅ 데미지 받기 함수
+    public void TakeDamage(int damage)
+    {
+        currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+
+        if (hpSlider != null)
+        {
+            hpSlider.value = currentHP;
+        }
+
+        if (currentHP <= 0)
+        {
+            Die();
+        }
+    }
+
+    // ✅ 죽는 처리
+    void Die()
+    {
+        Debug.Log("플레이어 사망");
+        // 애니메이션, 리스폰 등 추가 가능
+        // gameObject.SetActive(false);
     }
 }

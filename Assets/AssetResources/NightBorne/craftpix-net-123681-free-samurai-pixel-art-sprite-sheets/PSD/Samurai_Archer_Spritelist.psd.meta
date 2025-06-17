@@ -318,6 +318,32 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -1984,7 +2010,82 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Samurai_Archer_Spritelist_0: 44535004781670035
+      Samurai_Archer_Spritelist_1: 5273875994317813788
+      Samurai_Archer_Spritelist_10: -2983332851373586379
+      Samurai_Archer_Spritelist_11: -4904636811558536748
+      Samurai_Archer_Spritelist_12: -6275167429859898831
+      Samurai_Archer_Spritelist_13: 6243287058097032653
+      Samurai_Archer_Spritelist_14: -8535036595571731469
+      Samurai_Archer_Spritelist_15: 8209747501183141936
+      Samurai_Archer_Spritelist_16: 6434180233154481856
+      Samurai_Archer_Spritelist_17: -636392939115919064
+      Samurai_Archer_Spritelist_18: 6558982178780306790
+      Samurai_Archer_Spritelist_19: 7551375997815414495
+      Samurai_Archer_Spritelist_2: -2564739711183990596
+      Samurai_Archer_Spritelist_20: -6524304968588203724
+      Samurai_Archer_Spritelist_21: -8518279189144846477
+      Samurai_Archer_Spritelist_22: 1565559374041704875
+      Samurai_Archer_Spritelist_23: -2119399186731505067
+      Samurai_Archer_Spritelist_24: 2118802787459428157
+      Samurai_Archer_Spritelist_25: 9007552615384114357
+      Samurai_Archer_Spritelist_26: 1107353399127306725
+      Samurai_Archer_Spritelist_27: 1833583007401412264
+      Samurai_Archer_Spritelist_28: -6076480459550328171
+      Samurai_Archer_Spritelist_29: 4159898793791346122
+      Samurai_Archer_Spritelist_3: 1829803733139038656
+      Samurai_Archer_Spritelist_30: -7559012477888900642
+      Samurai_Archer_Spritelist_31: 4974154646862432957
+      Samurai_Archer_Spritelist_32: 7017181437375168002
+      Samurai_Archer_Spritelist_33: 9134974307407171028
+      Samurai_Archer_Spritelist_34: -7877023093320358329
+      Samurai_Archer_Spritelist_35: 6429786578316824849
+      Samurai_Archer_Spritelist_36: -5580589885679427259
+      Samurai_Archer_Spritelist_37: 2242819920967280095
+      Samurai_Archer_Spritelist_38: 1261282697550811963
+      Samurai_Archer_Spritelist_39: 7332755950126994525
+      Samurai_Archer_Spritelist_4: 572830244622930323
+      Samurai_Archer_Spritelist_40: -3295955325909513420
+      Samurai_Archer_Spritelist_41: 2315889853062782137
+      Samurai_Archer_Spritelist_42: 8972560763124830801
+      Samurai_Archer_Spritelist_43: 8570956084589845361
+      Samurai_Archer_Spritelist_44: -6864633219248101106
+      Samurai_Archer_Spritelist_45: -8063915599121617321
+      Samurai_Archer_Spritelist_46: 4885922897657643814
+      Samurai_Archer_Spritelist_47: -6154742174022035467
+      Samurai_Archer_Spritelist_48: 1263912043699199514
+      Samurai_Archer_Spritelist_49: -3270521432756709734
+      Samurai_Archer_Spritelist_5: 6910082046040943631
+      Samurai_Archer_Spritelist_50: -7661453492186586923
+      Samurai_Archer_Spritelist_51: 3907274707952800700
+      Samurai_Archer_Spritelist_52: 6305650524126401457
+      Samurai_Archer_Spritelist_53: 7839774078622714499
+      Samurai_Archer_Spritelist_54: -3400864329489025088
+      Samurai_Archer_Spritelist_55: 8544103346651084463
+      Samurai_Archer_Spritelist_56: -3876824524043216347
+      Samurai_Archer_Spritelist_57: 2187498187017863235
+      Samurai_Archer_Spritelist_58: -8324429425703686583
+      Samurai_Archer_Spritelist_59: -237238342018259767
+      Samurai_Archer_Spritelist_6: -3230552237190112725
+      Samurai_Archer_Spritelist_60: -5038122153919795158
+      Samurai_Archer_Spritelist_61: 1558316272731339492
+      Samurai_Archer_Spritelist_62: 6598986480163829412
+      Samurai_Archer_Spritelist_63: -2087696663557018933
+      Samurai_Archer_Spritelist_64: -921130160895358602
+      Samurai_Archer_Spritelist_65: -592672489688894605
+      Samurai_Archer_Spritelist_66: -3999809168851925837
+      Samurai_Archer_Spritelist_67: -5180151106114883773
+      Samurai_Archer_Spritelist_68: -508354864915310133
+      Samurai_Archer_Spritelist_69: 1104074574325636865
+      Samurai_Archer_Spritelist_7: -3584027427745468564
+      Samurai_Archer_Spritelist_70: 3122827570191580851
+      Samurai_Archer_Spritelist_71: -1348897589471115851
+      Samurai_Archer_Spritelist_72: 5482428745276252816
+      Samurai_Archer_Spritelist_73: 4077111270029078387
+      Samurai_Archer_Spritelist_74: 551023692606210456
+      Samurai_Archer_Spritelist_8: 925361580083924773
+      Samurai_Archer_Spritelist_9: 5723724060191848637
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

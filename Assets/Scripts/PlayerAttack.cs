@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -9,6 +8,13 @@ public class PlayerAttack : MonoBehaviour
     private bool inputReceived = false;
     private int comboStep = 0;
     private readonly int maxCombo = 3;
+
+    [Header("공격 설정")]
+    public Vector2 boxSize = new Vector2(1.5f, 1f); // 가로, 세로 크기
+    public float boxDistance = 1f;                  // 플레이어 기준 앞쪽 거리
+    public Transform attackPoint;                   // 기준 위치 (보통 플레이어 중심)
+    public LayerMask enemyLayer;                    // 적 레이어
+    public int attackDamage = 10;                   // 데미지
 
     void Start()
     {
@@ -33,17 +39,8 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    // === 아래는 애니메이션 이벤트에서 호출 ===
-
-    public void EnableComboInput()
-    {
-        canReceiveInput = true;
-    }
-
-    public void DisableComboInput()
-    {
-        canReceiveInput = false;
-    }
+    public void EnableComboInput() => canReceiveInput = true;
+    public void DisableComboInput() => canReceiveInput = false;
 
     public void ContinueCombo()
     {
@@ -67,5 +64,36 @@ public class PlayerAttack : MonoBehaviour
         canReceiveInput = false;
         comboStep = 0;
         animator.SetTrigger("meleeAttackEnd");
+    }
+
+    public void PerformAttack()
+    {
+        if (attackPoint == null) return;
+
+        float facing = transform.localScale.x > 0 ? 1f : -1f;
+        Vector2 center = (Vector2)attackPoint.position + new Vector2(facing * boxDistance, 0f);
+        float angle = facing > 0 ? 0f : 180f;
+
+        Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
+
+        foreach (Collider2D enemy in hitEnemies)
+        {
+            Debug.Log("적 타격: " + enemy.name);
+            enemy.GetComponent<Enemy>()?.TakeDamage(attackDamage);
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (attackPoint == null) return;
+
+        float facing = Application.isPlaying && transform.localScale.x < 0 ? -1f : 1f;
+        Vector2 center = (Vector2)attackPoint.position + new Vector2(facing * boxDistance, 0f);
+        float angle = facing > 0 ? 0f : 180f;
+
+        Gizmos.color = Color.red;
+        Matrix4x4 rotationMatrix = Matrix4x4.TRS(center, Quaternion.Euler(0, 0, angle), Vector3.one);
+        Gizmos.matrix = rotationMatrix;
+        Gizmos.DrawWireCube(Vector3.zero, boxSize);
     }
 }

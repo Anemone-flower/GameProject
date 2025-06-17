@@ -261,6 +261,32 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -1509,7 +1535,63 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Samurai_Commander_Spritelist_0: -7760114321135812016
+      Samurai_Commander_Spritelist_1: 2243908861549190121
+      Samurai_Commander_Spritelist_10: 8326291850597716046
+      Samurai_Commander_Spritelist_11: -8600419504954802035
+      Samurai_Commander_Spritelist_12: -1090152469173934124
+      Samurai_Commander_Spritelist_13: -2938396292196338710
+      Samurai_Commander_Spritelist_14: -7657670140411977102
+      Samurai_Commander_Spritelist_15: 1012266072096042531
+      Samurai_Commander_Spritelist_16: -8572774427143139316
+      Samurai_Commander_Spritelist_17: 1783457562815066878
+      Samurai_Commander_Spritelist_18: 3574621656686613530
+      Samurai_Commander_Spritelist_19: -7021052481048638140
+      Samurai_Commander_Spritelist_2: -7216637990236715385
+      Samurai_Commander_Spritelist_20: 8369776118190221820
+      Samurai_Commander_Spritelist_21: -8169074196465350510
+      Samurai_Commander_Spritelist_22: 7879542285758821564
+      Samurai_Commander_Spritelist_23: 8810698403821414033
+      Samurai_Commander_Spritelist_24: -7373700404548137756
+      Samurai_Commander_Spritelist_25: -4273122598807047960
+      Samurai_Commander_Spritelist_26: 6294061903061508559
+      Samurai_Commander_Spritelist_27: -2559190870893521378
+      Samurai_Commander_Spritelist_28: -293123171927943856
+      Samurai_Commander_Spritelist_29: 8356356530245568905
+      Samurai_Commander_Spritelist_3: -820887905730119575
+      Samurai_Commander_Spritelist_30: -4131432129149088713
+      Samurai_Commander_Spritelist_31: 6054707245394857621
+      Samurai_Commander_Spritelist_32: 5989443701764137185
+      Samurai_Commander_Spritelist_33: -5194425134968792306
+      Samurai_Commander_Spritelist_34: -7934543369740713200
+      Samurai_Commander_Spritelist_35: 7727105689669660503
+      Samurai_Commander_Spritelist_36: 7796125212844870617
+      Samurai_Commander_Spritelist_37: -8215346447777432735
+      Samurai_Commander_Spritelist_38: 6391188225521420198
+      Samurai_Commander_Spritelist_39: 929571089953699316
+      Samurai_Commander_Spritelist_4: -7489731986689019035
+      Samurai_Commander_Spritelist_40: -1165201731893711442
+      Samurai_Commander_Spritelist_41: 8759557166006354557
+      Samurai_Commander_Spritelist_42: 6758949063868395412
+      Samurai_Commander_Spritelist_43: -4544307655118325394
+      Samurai_Commander_Spritelist_44: -787951921470482120
+      Samurai_Commander_Spritelist_45: -2921635076301277100
+      Samurai_Commander_Spritelist_46: 5309997577664106834
+      Samurai_Commander_Spritelist_47: -8638130419118594050
+      Samurai_Commander_Spritelist_48: -6101304038477089322
+      Samurai_Commander_Spritelist_49: -3539961209589844780
+      Samurai_Commander_Spritelist_5: 8615271884140679079
+      Samurai_Commander_Spritelist_50: 3073595313579591212
+      Samurai_Commander_Spritelist_51: 5381892636909900785
+      Samurai_Commander_Spritelist_52: 898524528073668577
+      Samurai_Commander_Spritelist_53: -5966569455261173650
+      Samurai_Commander_Spritelist_54: -1415575694297209122
+      Samurai_Commander_Spritelist_55: 8013036578746021923
+      Samurai_Commander_Spritelist_6: -3618847043334091211
+      Samurai_Commander_Spritelist_7: 659497708922343786
+      Samurai_Commander_Spritelist_8: 5836097201661760188
+      Samurai_Commander_Spritelist_9: 798224603017282984
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

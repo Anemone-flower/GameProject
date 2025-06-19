@@ -11,10 +11,14 @@ public class PlayerAttack : MonoBehaviour
 
     [Header("공격 설정")]
     public Vector2 boxSize = new Vector2(1.5f, 1f); // 가로, 세로 크기
-    public float boxDistance = 1f;                  // 플레이어 기준 앞쪽 거리
-    public Transform attackPoint;                   // 기준 위치 (보통 플레이어 중심)
-    public LayerMask enemyLayer;                    // 적 레이어
-    public int attackDamage = 10;                   // 데미지
+    public float boxDistance = 1f;
+    public Transform attackPoint;
+    public LayerMask enemyLayer;
+    public int attackDamage = 10;
+
+    [Header("이펙트 설정")]
+    public GameObject attackEffectPrefab;
+    public Vector2 effectOffset = new Vector2(1f, 0f); // 공격 이펙트 위치 조정
 
     void Start()
     {
@@ -70,16 +74,25 @@ public class PlayerAttack : MonoBehaviour
     {
         if (attackPoint == null) return;
 
-        float facing = transform.localScale.x > 0 ? 1f : -1f;
+        float facing = Mathf.Sign(transform.localScale.x); // ← 방향 계산 보정
         Vector2 center = (Vector2)attackPoint.position + new Vector2(facing * boxDistance, 0f);
         float angle = facing > 0 ? 0f : 180f;
 
+        // === 히트박스 판정 ===
         Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
 
         foreach (Collider2D enemy in hitEnemies)
         {
             Debug.Log("적 타격: " + enemy.name);
             enemy.GetComponent<Enemy>()?.TakeDamage(attackDamage);
+        }
+
+        // === 3번째 콤보에만 이펙트 생성 ===
+        if (comboStep == 3 && attackEffectPrefab != null)
+        {
+            Vector2 effectPos = (Vector2)attackPoint.position + new Vector2(facing * effectOffset.x, effectOffset.y);
+            GameObject effect = Instantiate(attackEffectPrefab, effectPos, Quaternion.identity);
+            Destroy(effect, 0.5f);
         }
     }
 

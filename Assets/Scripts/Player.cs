@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     public int maxHP = 100;
     private int currentHP;
 
-    public Slider hpSlider; // ← HP 슬라이더 UI 연결
+    public Slider hpSlider;
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -28,11 +28,14 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = false;
     private bool isAttacking = false;
 
+    private PlayerSkills playerSkills;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
+        playerSkills = GetComponent<PlayerSkills>();
 
         currentHP = maxHP;
         if (hpSlider != null)
@@ -49,19 +52,13 @@ public class PlayerController : MonoBehaviour
         HandleJump();
         UpdateAnimations();
 
-        // 대시 쿨타임 감소
         if (dashCooldownTimer > 0f)
             dashCooldownTimer -= Time.deltaTime;
-
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            TakeDamage(10);
-        }
-    }    
+    }
 
     void HandleMovement()
     {
-        if (isAttacking) return;
+        if (isAttacking || (playerSkills != null && playerSkills.IsFocusing)) return;
 
         float move = Input.GetAxisRaw("Horizontal");
         float currentSpeed = isDashing ? dashSpeed : moveSpeed;
@@ -70,12 +67,16 @@ public class PlayerController : MonoBehaviour
 
         if (move != 0)
         {
-            sr.flipX = move < 0;
+            Vector3 scale = transform.localScale;
+            scale.x = Mathf.Abs(scale.x) * (move < 0 ? -1f : 1f);
+            transform.localScale = scale;
         }
     }
 
     void HandleJump()
     {
+        if ((playerSkills != null && playerSkills.IsFocusing)) return;
+
         if (Input.GetButtonDown("Jump") && isGrounded && !isAttacking)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -127,7 +128,6 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
     }
 
-    // ✅ 데미지 받기 함수
     public void TakeDamage(int damage)
     {
         currentHP -= damage;
@@ -144,11 +144,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ✅ 죽는 처리
     void Die()
     {
         Debug.Log("플레이어 사망");
-        // 애니메이션, 리스폰 등 추가 가능
-        // gameObject.SetActive(false);
+        // 사망 애니메이션 또는 처리 추가 가능
     }
 }

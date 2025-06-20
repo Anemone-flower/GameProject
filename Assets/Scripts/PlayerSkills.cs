@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class PlayerSkills : MonoBehaviour
@@ -22,6 +23,11 @@ public class PlayerSkills : MonoBehaviour
     public Vector2 effectOffset = new Vector2(1f, 0f);
     public float effectDuration = 0.5f;
 
+    [Header("집념 스택")]
+    public int maxStack = 5;
+    public int currentStack = 0;
+    public Slider stackSlider;
+
     private bool isFocusing = false;
     private float focusTimer = 0f;
     private int focusShotsRemaining = 0;
@@ -33,17 +39,18 @@ public class PlayerSkills : MonoBehaviour
     private Vector3 originalCamPos;
     private bool isShaking = false;
 
-    public bool IsFocusing => isFocusing;
+    public bool IsFocusing { get { return isFocusing; } }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        UpdateStackUI();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.K) && !isFocusing)
+        if (Input.GetKeyDown(KeyCode.K) && !isFocusing && currentStack >= 2)
         {
             EnterFocusMode();
         }
@@ -54,7 +61,7 @@ public class PlayerSkills : MonoBehaviour
             if (shotCooldownTimer > 0f)
                 shotCooldownTimer -= Time.deltaTime;
 
-            if (focusTimer >= focusDuration)
+            if (focusTimer >= focusDuration || currentStack <= 0)
             {
                 ExitFocusMode();
             }
@@ -80,7 +87,7 @@ public class PlayerSkills : MonoBehaviour
     {
         isFocusing = true;
         focusTimer = 0f;
-        focusShotsRemaining = maxFocusShots;
+        focusShotsRemaining = Mathf.Min(maxFocusShots, currentStack);
         shotCooldownTimer = 0f;
         Debug.Log("집중 상태 진입");
 
@@ -111,7 +118,10 @@ public class PlayerSkills : MonoBehaviour
         focusTimer = 0f;
         shotCooldownTimer = 1.5f;
 
-        rb.linearVelocity = new Vector2(direction * 0f, rb.linearVelocity.y);
+        currentStack = Mathf.Max(0, currentStack - 1);
+        UpdateStackUI();
+
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
 
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * direction;
@@ -121,7 +131,6 @@ public class PlayerSkills : MonoBehaviour
 
         animator?.SetTrigger("FocusShoot");
 
-        // 이펙트 생성
         if (focusAttackEffectPrefab != null)
         {
             Vector3 spawnPos = transform.position + new Vector3(effectOffset.x * direction, effectOffset.y, 0f);
@@ -141,7 +150,7 @@ public class PlayerSkills : MonoBehaviour
             StartCoroutine(ShakeCamera());
         }
 
-        if (focusShotsRemaining <= 0)
+        if (focusShotsRemaining <= 0 || currentStack <= 0)
         {
             ExitFocusMode();
         }
@@ -188,5 +197,21 @@ public class PlayerSkills : MonoBehaviour
 
         mainCam.transform.position = originalCamPos;
         isShaking = false;
+    }
+
+    public void GainStack()
+    {
+        currentStack = Mathf.Clamp(currentStack + 1, 0, maxStack);
+        UpdateStackUI();
+        Debug.Log($"[집념] 스택 획득: {currentStack}");
+    }
+
+    private void UpdateStackUI()
+    {
+        if (stackSlider != null)
+        {
+            stackSlider.maxValue = maxStack;
+            stackSlider.value = currentStack;
+        }
     }
 }

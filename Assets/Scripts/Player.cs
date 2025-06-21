@@ -21,6 +21,11 @@ public class PlayerController : MonoBehaviour
 
     public Slider hpSlider;
 
+    [Header("지면 체크")]
+    public LayerMask groundLayer;
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.1f;
+
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
@@ -47,6 +52,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        CheckGrounded();
         HandleDash();
         HandleMovement();
         HandleJump();
@@ -54,6 +60,11 @@ public class PlayerController : MonoBehaviour
 
         if (dashCooldownTimer > 0f)
             dashCooldownTimer -= Time.deltaTime;
+    }
+
+    void CheckGrounded()
+    {
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
     }
 
     void HandleMovement()
@@ -80,7 +91,6 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown("Jump") && isGrounded && !isAttacking)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            isGrounded = false;
             anim.SetBool("isJumping", true);
         }
     }
@@ -112,20 +122,12 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        foreach (ContactPoint2D contact in collision.contacts)
-        {
-            if (contact.normal.y > 0.5f)
-            {
-                isGrounded = true;
-                anim.SetBool("isJumping", false);
-                break;
-            }
-        }
+        // 이 부분은 레이캐스트 기반으로 대체되므로 생략 가능
     }
 
     void OnCollisionExit2D(Collision2D collision)
     {
-        isGrounded = false;
+        // 이 부분도 생략 가능
     }
 
     public void TakeDamage(int damage)

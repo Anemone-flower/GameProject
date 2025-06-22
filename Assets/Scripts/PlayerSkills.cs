@@ -6,17 +6,17 @@ public class PlayerSkills : MonoBehaviour
 {
     [Header("집중 모드")]
     public float focusDuration = 5f;
-    public int maxFocusShots = 3;
+    public int maxFocusShots = 4;
     public int focusDamage = 30;
     public LayerMask enemyLayer;
-    public float attackRange = 5f;
+    public float attackRange = 10f;
 
     [Header("카메라 연출")]
     public Camera mainCam;
     public float focusZoomSize = 2f;
     public float normalZoomSize = 5f;
-    public float cameraShakeDuration = 0.1f;
-    public float cameraShakeMagnitude = 0.3f;
+    public float cameraShakeDuration = 0.15f;
+    public float cameraShakeMagnitude = 1.1f;
 
     [Header("이펙트 설정")]
     public GameObject focusAttackEffectPrefab;
@@ -24,9 +24,13 @@ public class PlayerSkills : MonoBehaviour
     public float effectDuration = 0.5f;
 
     [Header("집념 스택")]
-    public int maxStack = 5;
+    public int maxStack = 4;
     public int currentStack = 0;
-    public Slider stackSlider;
+
+    [Header("스택 동그라미 UI")]
+    public Image[] stackCircles; // 동그라미 이미지 배열
+    public Color filledColor = Color.white;
+    public Color emptyColor = Color.gray;
 
     private bool isFocusing = false;
     private float focusTimer = 0f;
@@ -171,10 +175,10 @@ public class PlayerSkills : MonoBehaviour
         Vector2 dir = new Vector2(direction, 0f);
 
         RaycastHit2D hit = Physics2D.Raycast(origin, dir, attackRange, enemyLayer);
-        if (hit.collider != null)
+        if (hit.collider != null && hit.collider.TryGetComponent<IDamageable>(out var damageable))
         {
-            hit.collider.GetComponent<Enemy>()?.TakeDamage(focusDamage);
-            Debug.Log("집중 공격 적 명중: " + hit.collider.name);
+            damageable.TakeDamage(focusDamage);
+            Debug.Log("집중 공격 명중: " + hit.collider.name);
         }
     }
 
@@ -208,10 +212,9 @@ public class PlayerSkills : MonoBehaviour
 
     private void UpdateStackUI()
     {
-        if (stackSlider != null)
+        for (int i = 0; i < stackCircles.Length; i++)
         {
-            stackSlider.maxValue = maxStack;
-            stackSlider.value = currentStack;
+            stackCircles[i].color = i < currentStack ? filledColor : emptyColor;
         }
     }
 }

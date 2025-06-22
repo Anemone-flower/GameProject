@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
+using UnityEngine.SceneManagement;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 {
     [Header("이동 및 점프")]
     public float moveSpeed = 5f;
@@ -18,8 +20,10 @@ public class PlayerController : MonoBehaviour
     [Header("체력")]
     public int maxHP = 100;
     private int currentHP;
-
     public Slider hpSlider;
+    public Image hpFillImage;
+
+    private Color originalHPColor; // ✅ 원래 색상 저장
 
     [Header("지면 체크")]
     public LayerMask groundLayer;
@@ -32,8 +36,11 @@ public class PlayerController : MonoBehaviour
 
     private bool isGrounded = false;
     private bool isAttacking = false;
+    private bool isDead = false;
 
     private PlayerSkills playerSkills;
+    public bool IsDead => isDead;
+    public string gameOverSceneName = "GameOverScene";
 
     void Start()
     {
@@ -47,6 +54,12 @@ public class PlayerController : MonoBehaviour
         {
             hpSlider.maxValue = maxHP;
             hpSlider.value = currentHP;
+        }
+
+        if (hpFillImage != null)
+        {
+            hpFillImage.enabled = true;
+            originalHPColor = hpFillImage.color; // ✅ 원래 색상 저장
         }
     }
 
@@ -120,35 +133,80 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("isJumping", !isGrounded);
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        // 이 부분은 레이캐스트 기반으로 대체되므로 생략 가능
-    }
-
-    void OnCollisionExit2D(Collision2D collision)
-    {
-        // 이 부분도 생략 가능
-    }
-
     public void TakeDamage(int damage)
     {
+        if (isDead) return;
+
         currentHP -= damage;
         currentHP = Mathf.Clamp(currentHP, 0, maxHP);
 
         if (hpSlider != null)
-        {
             hpSlider.value = currentHP;
-        }
+
+        if (hpFillImage != null)
+            hpFillImage.enabled = (currentHP > 0);
+
+        anim.SetTrigger("Hit");
 
         if (currentHP <= 0)
         {
             Die();
         }
+
+        BossController boss = FindObjectOfType<BossController>();
+        if (boss != null)
+        {
+            boss.ApplyShieldByRatio(0.03f); // 최대 체력의 3%
+        }
     }
+
+    // 상태이상용 조용한 데미지 처리
+  public void ApplyDotDamage(int damage)
+{
+    if (isDead) return;
+
+    Debug.Log($"[DOT] 잠식 데미지 적용: {damage} (남은 체력: {currentHP - damage})");
+
+    currentHP -= damage;
+    currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+
+    if (hpSlider != null)
+        hpSlider.value = currentHP;
+
+    if (hpFillImage != null)
+        hpFillImage.enabled = (currentHP > 0);
+
+    if (currentHP <= 0)
+    {
+        Die();
+    }
+}
+
+
 
     void Die()
     {
-        Debug.Log("플레이어 사망");
-        // 사망 애니메이션 또는 처리 추가 가능
+        isDead = true;
+        anim.SetTrigger("Die");
+        StartCoroutine(DelayedSceneChange());
+    }
+
+    IEnumerator DelayedSceneChange()
+    {
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene(gameOverSceneName);
+    }
+
+    // ✅ 상태이상 색상 제어 함수
+    public void SetHPBarColor(Color color)
+    {
+        if (hpFillImage != null)
+            hpFillImage.color = color;
+    }
+
+    public void ResetHPBarColor()
+    {
+        if (hpFillImage != null)
+            hpFillImage.color = originalHPColor;
     }
 }

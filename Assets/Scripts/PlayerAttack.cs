@@ -87,8 +87,14 @@ public class PlayerAttack : MonoBehaviour
         foreach (Collider2D enemy in hitEnemies)
         {
             hit = true;
-            enemy.GetComponent<Enemy>()?.TakeDamage(attackDamage);
-        }
+
+            if (enemy.TryGetComponent<IDamageable>(out var target))
+            {
+                Debug.Log($"공격 성공: {enemy.name}");
+                target.TakeDamage(attackDamage);
+            }
+        }   
+
 
     if (comboStep == 3 && hit)
     {

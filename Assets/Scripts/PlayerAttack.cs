@@ -36,6 +36,7 @@ public class PlayerAttack : MonoBehaviour
             {
                 isAttacking = true;
                 comboStep = 1;
+                ApplyAttackSpeed(); // 공격속도 반영
                 animator.SetInteger("attackCount", comboStep);
                 animator.SetTrigger("meleeAttack");
             }
@@ -43,6 +44,19 @@ public class PlayerAttack : MonoBehaviour
             {
                 inputReceived = true;
             }
+        }
+    }
+
+    void ApplyAttackSpeed()
+    {
+        PlayerController player = GetComponent<PlayerController>();
+        if (player != null)
+        {
+            animator.speed = player.attackSpeedMultiplier;
+        }
+        else
+        {
+            animator.speed = 1f;
         }
     }
 
@@ -55,6 +69,7 @@ public class PlayerAttack : MonoBehaviour
         {
             inputReceived = false;
             comboStep++;
+            ApplyAttackSpeed(); // 콤보 연속 시에도 속도 적용
             animator.SetInteger("attackCount", comboStep);
             animator.SetTrigger("meleeAttack");
         }
@@ -70,6 +85,7 @@ public class PlayerAttack : MonoBehaviour
         inputReceived = false;
         canReceiveInput = false;
         comboStep = 0;
+        animator.speed = 1f; // 원래 속도로 복원
         animator.SetTrigger("meleeAttackEnd");
     }
 
@@ -84,28 +100,26 @@ public class PlayerAttack : MonoBehaviour
         Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
         bool hit = false;
 
+        PlayerController player = GetComponent<PlayerController>();
+        int damage = attackDamage;
+        if (player != null)
+            damage = Mathf.RoundToInt(attackDamage * player.attackPowerMultiplier);
+
         foreach (Collider2D enemy in hitEnemies)
         {
             hit = true;
-
             if (enemy.TryGetComponent<IDamageable>(out var target))
             {
-                Debug.Log($"공격 성공: {enemy.name}");
-                target.TakeDamage(attackDamage);
+                target.TakeDamage(damage);
             }
-        }   
-
-
-    if (comboStep == 3 && hit)
-    {
-        PlayerSkills skills = GetComponent<PlayerSkills>();
-        if (skills != null)
-        {
-            skills.GainStack();
-            Debug.Log("[집념] 흭득! " + tenacityStack);
         }
-    }
 
+        if (comboStep == 3 && hit)
+        {
+            PlayerSkills skills = GetComponent<PlayerSkills>();
+            if (skills != null)
+                skills.GainStack();
+        }
 
         if (comboStep == 3 && attackEffectPrefab != null)
         {

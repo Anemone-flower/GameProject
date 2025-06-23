@@ -30,6 +30,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     public Transform groundCheck;
     public float groundCheckRadius = 0.1f;
 
+    [Header("전투 관련")]
+    public float attackSpeedMultiplier = 1f;
+    public float attackPowerMultiplier = 1f;
+    public float damageReduction = 0f;
+
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
@@ -133,9 +138,34 @@ public class PlayerController : MonoBehaviour, IDamageable
         anim.SetBool("isJumping", !isGrounded);
     }
 
+    public void Heal(int amount)
+    {
+        currentHP = Mathf.Clamp(currentHP + amount, 0, maxHP);
+        if (hpSlider != null) hpSlider.value = currentHP;
+    }
+
     public void TakeDamage(int damage)
     {
         if (isDead) return;
+
+        int finalDamage = Mathf.RoundToInt(damage * (1f - damageReduction));
+        currentHP -= finalDamage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+        if (hpSlider != null) hpSlider.value = currentHP;
+        anim.SetTrigger("Hit");
+
+        if (currentHP <= 0) Die();
+
+        BossController boss = FindObjectOfType<BossController>();
+        if (boss != null)
+            boss.ApplyShieldByRatio(0.03f);
+    }
+
+  public void ApplyDotDamage(int damage)
+    {
+        if (isDead) return;
+
+        Debug.Log($"[DOT] 잠식 데미지 적용: {damage} (남은 체력: {currentHP - damage})");
 
         currentHP -= damage;
         currentHP = Mathf.Clamp(currentHP, 0, maxHP);
@@ -146,41 +176,11 @@ public class PlayerController : MonoBehaviour, IDamageable
         if (hpFillImage != null)
             hpFillImage.enabled = (currentHP > 0);
 
-        anim.SetTrigger("Hit");
-
         if (currentHP <= 0)
         {
             Die();
         }
-
-        BossController boss = FindObjectOfType<BossController>();
-        if (boss != null)
-        {
-            boss.ApplyShieldByRatio(0.03f); // 최대 체력의 3%
-        }
     }
-
-    // 상태이상용 조용한 데미지 처리
-  public void ApplyDotDamage(int damage)
-{
-    if (isDead) return;
-
-    Debug.Log($"[DOT] 잠식 데미지 적용: {damage} (남은 체력: {currentHP - damage})");
-
-    currentHP -= damage;
-    currentHP = Mathf.Clamp(currentHP, 0, maxHP);
-
-    if (hpSlider != null)
-        hpSlider.value = currentHP;
-
-    if (hpFillImage != null)
-        hpFillImage.enabled = (currentHP > 0);
-
-    if (currentHP <= 0)
-    {
-        Die();
-    }
-}
 
 
 

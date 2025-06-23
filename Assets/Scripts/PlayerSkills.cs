@@ -25,10 +25,21 @@ public class PlayerSkills : MonoBehaviour
 
     [Header("집념 스택")]
     public int maxStack = 4;
-    public int currentStack = 0;
+    private int _currentStack = 0;
+    public int currentStack
+    {
+        get => _currentStack;
+        set
+        {
+            _currentStack = Mathf.Clamp(value, 0, maxStack);
+            ApplyStackEffects();
+            UpdateStackUI();
+            Debug.Log($"[집념] 스택 변경됨 → {_currentStack}");
+        }
+    }
 
     [Header("스택 동그라미 UI")]
-    public Image[] stackCircles; // 동그라미 이미지 배열
+    public Image[] stackCircles;
     public Color filledColor = Color.white;
     public Color emptyColor = Color.gray;
 
@@ -39,16 +50,28 @@ public class PlayerSkills : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator animator;
-
     private Vector3 originalCamPos;
     private bool isShaking = false;
 
-    public bool IsFocusing { get { return isFocusing; } }
+    private PlayerController player;
+
+    public bool IsFocusing => isFocusing;
+
+    void Awake()
+    {
+        player = GetComponent<PlayerController>();
+        if (player == null)
+            player = FindObjectOfType<PlayerController>(); // 백업 검색
+
+        if (player == null)
+            Debug.LogError("[PlayerSkills] PlayerController 연결 실패!");
+    }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        currentStack = _currentStack;
         UpdateStackUI();
     }
 
@@ -96,9 +119,7 @@ public class PlayerSkills : MonoBehaviour
         Debug.Log("집중 상태 진입");
 
         if (mainCam != null)
-        {
             mainCam.orthographicSize = focusZoomSize;
-        }
 
         animator?.SetTrigger("EnterFocus");
     }
@@ -109,76 +130,73 @@ public class PlayerSkills : MonoBehaviour
         Debug.Log("집중 상태 종료");
 
         if (mainCam != null)
-        {
             mainCam.orthographicSize = normalZoomSize;
-        }
 
         animator?.SetTrigger("ExitFocus");
     }
 
-    void ExecuteFocusShot(int direction)
+void ExecuteFocusShot(int direction)
+{
+    focusShotsRemaining--;
+    focusTimer = 0f;
+    shotCooldownTimer = 1.5f;
+
+    rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+    Vector3 scale = transform.localScale;
+    scale.x = Mathf.Abs(scale.x) * direction;
+    transform.localScale = scale;
+
+    FocusAttack(direction); // ✅ 먼저 공격
+
+    currentStack--; // ✅ 그 다음 스택 차감 → ApplyStackEffects 자동 반영
+
+    animator?.SetTrigger("FocusShoot");
+
+    if (focusAttackEffectPrefab != null)
     {
-        focusShotsRemaining--;
-        focusTimer = 0f;
-        shotCooldownTimer = 1.5f;
-
-        currentStack = Mathf.Max(0, currentStack - 1);
-        UpdateStackUI();
-
-        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-
-        Vector3 scale = transform.localScale;
-        scale.x = Mathf.Abs(scale.x) * direction;
-        transform.localScale = scale;
-
-        FocusAttack(direction);
-
-        animator?.SetTrigger("FocusShoot");
-
-        if (focusAttackEffectPrefab != null)
-        {
-            Vector3 spawnPos = transform.position + new Vector3(effectOffset.x * direction, effectOffset.y, 0f);
-            GameObject effect = Instantiate(focusAttackEffectPrefab, spawnPos, Quaternion.identity);
-
-            Vector3 effectScale = effect.transform.localScale;
-            effectScale.x = Mathf.Abs(effectScale.x) * direction;
-            effect.transform.localScale = effectScale;
-
-            Destroy(effect, effectDuration);
-        }
-
-        StartCoroutine(ReturnToHoldAfterShoot());
-
-        if (mainCam != null)
-        {
-            StartCoroutine(ShakeCamera());
-        }
-
-        if (focusShotsRemaining <= 0 || currentStack <= 0)
-        {
-            ExitFocusMode();
-        }
+        Vector3 spawnPos = transform.position + new Vector3(effectOffset.x * direction, effectOffset.y, 0f);
+        GameObject effect = Instantiate(focusAttackEffectPrefab, spawnPos, Quaternion.identity);
+        effect.transform.localScale = new Vector3(Mathf.Abs(effect.transform.localScale.x) * direction, effect.transform.localScale.y, 1f);
+        Destroy(effect, effectDuration);
     }
+
+    StartCoroutine(ReturnToHoldAfterShoot());
+
+    if (mainCam != null)
+        StartCoroutine(ShakeCamera());
+
+    if (focusShotsRemaining <= 0 || currentStack <= 0)
+        ExitFocusMode();
+}
 
     IEnumerator ReturnToHoldAfterShoot()
     {
         yield return new WaitForSeconds(0.3f);
         if (isFocusing)
-        {
             animator?.SetTrigger("BackToHold");
-        }
     }
 
     void FocusAttack(int direction)
     {
+        if (player == null)
+        {
+            Debug.LogError("[집중] PlayerController가 null입니다!");
+            return;
+        }
+
+        float multiplier = player.attackPowerMultiplier;
+        int realDamage = Mathf.RoundToInt(focusDamage * multiplier);
+        Debug.Log($"[집중] 공격 전 스택: {currentStack}, 배수: {multiplier}, 피해: {realDamage}");
+
         Vector2 origin = transform.position;
         Vector2 dir = new Vector2(direction, 0f);
-
         RaycastHit2D hit = Physics2D.Raycast(origin, dir, attackRange, enemyLayer);
+
         if (hit.collider != null && hit.collider.TryGetComponent<IDamageable>(out var damageable))
         {
-            damageable.TakeDamage(focusDamage);
-            Debug.Log("집중 공격 명중: " + hit.collider.name);
+            damageable.TakeDamage(realDamage);
+            Debug.Log($"[집중] 명중! 대상: {hit.collider.name}");
         }
     }
 
@@ -205,9 +223,54 @@ public class PlayerSkills : MonoBehaviour
 
     public void GainStack()
     {
-        currentStack = Mathf.Clamp(currentStack + 1, 0, maxStack);
-        UpdateStackUI();
-        Debug.Log($"[집념] 스택 획득: {currentStack}");
+        Debug.Log($"[집념] GainStack 호출됨 / 현재 player null? {player == null}");
+        currentStack++;
+        if (player != null)
+            player.Heal(Mathf.RoundToInt(player.maxHP * 0.03f));
+    }
+
+    void ApplyStackEffects()
+    {
+        if (player == null)
+        {
+            Debug.LogError("[집념] ApplyStackEffects에서 player가 null입니다!");
+            return;
+        }
+
+        player.attackSpeedMultiplier = 1f;
+        player.damageReduction = 0f;
+        player.attackPowerMultiplier = 1f;
+        CancelInvoke(nameof(RegenerateHP));
+
+        if (currentStack >= 1)
+        {
+            player.attackSpeedMultiplier = 1.2f;
+            Debug.Log("[집념] 1스택 적용됨: 공격속도 +20%");
+        }
+
+        if (currentStack >= 2)
+        {
+            player.damageReduction = 0.10f;
+            Debug.Log("[집념] 2스택 적용됨: 받는 피해 -10%");
+        }
+
+        if (currentStack >= 3)
+        {
+            InvokeRepeating(nameof(RegenerateHP), 1f, 1f);
+            Debug.Log("[집념] 3스택 적용됨: 초당 체력 회복");
+        }
+
+        if (currentStack >= 4)
+        {
+            player.attackPowerMultiplier = 2f;
+            Debug.Log("[집념] 4스택 적용됨: 공격력 +100%");
+        }
+    }
+
+    void RegenerateHP()
+    {
+        if (player != null)
+            player.Heal(Mathf.RoundToInt(player.maxHP * 0.01f));
     }
 
     private void UpdateStackUI()

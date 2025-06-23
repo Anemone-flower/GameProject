@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     public Slider hpSlider;
     public Image hpFillImage;
 
-    private Color originalHPColor; // ✅ 원래 색상 저장
+    private Color originalHPColor;
 
     [Header("지면 체크")]
     public LayerMask groundLayer;
@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     public bool IsDead => isDead;
     public string gameOverSceneName = "GameOverScene";
 
+    // ✅ 넉백 관련 변수
+    private bool isKnockbacked = false;
+    private float knockbackTimer = 0f;
+    public float knockbackDuration = 0.3f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -64,12 +69,24 @@ public class PlayerController : MonoBehaviour, IDamageable
         if (hpFillImage != null)
         {
             hpFillImage.enabled = true;
-            originalHPColor = hpFillImage.color; // ✅ 원래 색상 저장
+            originalHPColor = hpFillImage.color;
         }
     }
 
     void Update()
     {
+        if (isDead) return;
+
+        // ✅ 넉백 상태 체크
+        if (isKnockbacked)
+        {
+            knockbackTimer -= Time.deltaTime;
+            if (knockbackTimer <= 0f)
+                isKnockbacked = false;
+
+            return; // 넉백 중엔 조작 금지
+        }
+
         CheckGrounded();
         HandleDash();
         HandleMovement();
@@ -161,7 +178,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             boss.ApplyShieldByRatio(0.03f);
     }
 
-  public void ApplyDotDamage(int damage)
+    public void ApplyDotDamage(int damage)
     {
         if (isDead) return;
 
@@ -182,9 +199,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
-
-
-    void Die()
+    public void Die()
     {
         isDead = true;
         anim.SetTrigger("Die");
@@ -197,7 +212,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         SceneManager.LoadScene(gameOverSceneName);
     }
 
-    // ✅ 상태이상 색상 제어 함수
     public void SetHPBarColor(Color color)
     {
         if (hpFillImage != null)
@@ -208,5 +222,15 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         if (hpFillImage != null)
             hpFillImage.color = originalHPColor;
+    }
+
+    // ✅ 넉백 처리 함수
+    public void ApplyKnockback(Vector2 force)
+    {
+        isKnockbacked = true;
+        knockbackTimer = knockbackDuration;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(force, ForceMode2D.Impulse);
     }
 }

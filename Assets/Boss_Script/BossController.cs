@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class BossController : MonoBehaviour, IDamageable
 {
@@ -35,18 +37,35 @@ public class BossController : MonoBehaviour, IDamageable
     public BossUIManager bossUI;
     public string bossName = "칠흑의 거신";
 
+    [Header("사망 연출")]
+    public CanvasGroup fadeCanvasGroup;       // ✅ end 오브젝트 (CanvasGroup)
+    public TMP_Text deathDialogueText;
+    public string clearSceneName = "Clear";
+
     [Header("일반 공격 범위 시각화")]
     public float normalAttackRange = 1.5f;
     public Vector2 normalAttackBoxSize = new Vector2(2f, 2f);
     public bool showAttackRange = true;
 
-    [Header("반격 확률")]
-    [Range(0f, 1f)] public float counterChance = 0.5f;
+    [Header("반격 설정")]
+    [Range(0f, 1f)] public float counterChance = 0.4f;
+    private float lastCounterTime = -999f;
+    private float counterCooldown = 5f;
 
     private Rigidbody2D rb;
     private Animator anim;
     private BossAttack bossAttack;
     private bool isAttacking = false;
+
+    void Awake()
+    {
+        // ✅ 시작 시 사망 UI 숨기기
+        if (fadeCanvasGroup != null)
+            fadeCanvasGroup.alpha = 0f;
+
+        if (deathDialogueText != null)
+            deathDialogueText.text = "";
+    }
 
     void Start()
     {
@@ -95,7 +114,7 @@ public class BossController : MonoBehaviour, IDamageable
                 if (Time.time - lastAttackTime >= attackInterval)
                 {
                     lastAttackTime = Time.time;
-                    bossAttack.DoComboAttack(3f); // 3초 이동 제한
+                    bossAttack.DoComboAttack(3f);
                 }
             }
         }
@@ -133,9 +152,12 @@ public class BossController : MonoBehaviour, IDamageable
     {
         if (isDead) return;
 
-        // 반격 확률 판정 (공격 중이든 무조건 가능)
-        if (Random.value <= counterChance)
+        bool canCounter = Time.time - lastCounterTime >= counterCooldown;
+        bool isLucky = Random.value <= counterChance;
+
+        if (canCounter && isLucky)
         {
+            lastCounterTime = Time.time;
             bossAttack.DoCounter();
         }
 
@@ -171,6 +193,13 @@ public class BossController : MonoBehaviour, IDamageable
         bossUI?.UpdateHP(currentHealth, shieldAmount);
     }
 
+    public void Heal(int amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        bossUI?.UpdateHP(currentHealth, shieldAmount);
+        Debug.Log($"[보스] HP 회복: {amount} → 현재 HP: {currentHealth}");
+    }
+
     void EnterPhase2()
     {
         isPhase2 = true;
@@ -186,6 +215,46 @@ public class BossController : MonoBehaviour, IDamageable
         bossAttack.DoDie();
         bossUI?.HideUI();
         Debug.Log("보스 사망");
+
+        StartCoroutine(BossDeathSequence());
+    }
+
+    private IEnumerator BossDeathSequence()
+    {
+        float duration = 1.5f;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            if (fadeCanvasGroup != null)
+                fadeCanvasGroup.alpha = Mathf.Clamp01(t / duration);
+            yield return null;
+        }
+
+        string[] lines = new string[]
+        {
+            "여명이..도래하기엔..아직..이르군",
+            "나에게..밤은..너무나도..길구나.."
+        };
+
+        foreach (var line in lines)
+        {
+            deathDialogueText.text = "";
+            yield return StartCoroutine(TypeSentence(line, 0.04f));
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene(clearSceneName);
+    }
+
+    private IEnumerator TypeSentence(string sentence, float speed)
+    {
+        foreach (char c in sentence)
+        {
+            deathDialogueText.text += c;
+            yield return new WaitForSeconds(speed);
+        }
     }
 
     void OnDrawGizmosSelected()

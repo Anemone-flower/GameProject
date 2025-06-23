@@ -8,11 +8,15 @@ public class BossAttack : MonoBehaviour
     private Transform player;
 
     private int comboStep = 0;
-    private readonly int maxCombo = 2; // ATK1 → ATK2 콤보까지
+    private readonly int maxCombo = 2;
     private Rigidbody2D rb;
 
     [Header("공격 설정")]
     public int comboDamage = 20;
+
+    // ✅ 여명 쿨타임 변수
+    private float lastDawnTime = -999f;
+    private float dawnInterval = 10f;
 
     void Start()
     {
@@ -22,7 +26,6 @@ public class BossAttack : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // 콤보 시작
     public void DoComboAttack(float stopDuration)
     {
         StartCoroutine(ComboRoutine(stopDuration));
@@ -32,13 +35,12 @@ public class BossAttack : MonoBehaviour
     {
         controller.SetCanMove(false);
         controller.SetIsAttacking(true);
-        StartCombo(); // 첫 타
+        StartCombo();
         yield return new WaitForSeconds(stopDuration);
         controller.SetIsAttacking(false);
         controller.SetCanMove(true);
     }
 
-    // 콤보 첫 공격 시작
     public void StartCombo()
     {
         if (comboStep == 0)
@@ -49,7 +51,6 @@ public class BossAttack : MonoBehaviour
         }
     }
 
-    // 애니메이션 이벤트에서 호출됨: 다음 콤보 가능 시점
     public void ContinueCombo()
     {
         if (comboStep < maxCombo)
@@ -64,7 +65,6 @@ public class BossAttack : MonoBehaviour
         }
     }
 
-    // 콤보 종료
     public void EndCombo()
     {
         comboStep = 0;
@@ -72,7 +72,6 @@ public class BossAttack : MonoBehaviour
         anim.SetInteger("Combo", 0);
     }
 
-    // 애니메이션 이벤트에서 타격 처리
     public void ComboDamageEvent()
     {
         if (player == null) return;
@@ -88,12 +87,17 @@ public class BossAttack : MonoBehaviour
             if (hit.CompareTag("Player"))
             {
                 hit.GetComponent<PlayerController>()?.TakeDamage(comboDamage);
-                hit.GetComponent<PlayerStatusManager>()?.ApplyCorruption(10, 3f);
+
+                // 10초마다 1회 여명 부여
+                if (Time.time - lastDawnTime >= dawnInterval)
+                {
+                    hit.GetComponent<PlayerStatusManager>()?.ApplyDawn(15, 3f);
+                    lastDawnTime = Time.time;
+                }
             }
         }
     }
 
-    // 발검 준비 및 실행
     public void DoSwordStrike(float duration)
     {
         StartCoroutine(SwordStrikeRoutine(duration));
@@ -107,25 +111,25 @@ public class BossAttack : MonoBehaviour
         anim.SetTrigger("Ready");
         controller.SetIsAttacking(true);
         transform.position = player.position;
-        GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Kinematic;
 
         yield return null;
     }
 
-    // 발검 타격 실행
     public void ExecuteSwordStrikeAttack(GameObject effectPrefab)
     {
         float direction = transform.localScale.x >= 0 ? 1f : -1f;
         Vector3 offset = Vector3.right * 5f * direction;
         Vector2 center = (Vector2)(transform.position + offset);
 
-        Collider2D[] hits = Physics2D.OverlapBoxAll(center, new Vector2(10f, 10f), 0f);
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, new Vector2(15f, 15f), 0f);
         foreach (var hit in hits)
         {
             if (hit.CompareTag("Player"))
             {
-                hit.GetComponent<PlayerController>()?.TakeDamage(50);
+                hit.GetComponent<PlayerController>()?.TakeDamage(120);
+                hit.GetComponent<PlayerStatusManager>()?.ApplyDawn(15, 3f);
             }
         }
 
@@ -137,58 +141,54 @@ public class BossAttack : MonoBehaviour
             GameObject effect = Instantiate(effectPrefab, transform.position + offset, Quaternion.identity);
             Destroy(effect, 2f);
         }
+
         rb.bodyType = RigidbodyType2D.Dynamic;
     }
 
-    // 반격
-public void DoCounter(float knockbackForce = 10f, int damage = 10)
-{
-    anim.SetTrigger("DoCounter");
-    Debug.Log("[반격] SetTrigger 호출됨");
-
-    AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
-    Debug.Log($"[Animator State] 현재 상태: {state.fullPathHash}, IsName(Counter)? {state.IsName("Counter")}");
-
-    controller.SetCanMove(false);
-    controller.LastAttackTime = Time.time;
-    
-
-    GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-    if (playerObj != null)
+    public void DoCounter(float knockbackForce = 10f)
     {
-        PlayerController pc = playerObj.GetComponent<PlayerController>();
-        PlayerStatusManager status = playerObj.GetComponent<PlayerStatusManager>();
-        Rigidbody2D playerRb = playerObj.GetComponent<Rigidbody2D>();
+        anim.SetTrigger("DoCounter");
+        Debug.Log("[반격] SetTrigger 호출됨");
 
-        if (pc != null)
+        controller.SetCanMove(false);
+        controller.SetIsAttacking(true);
+        controller.LastAttackTime = Time.time;
+
+        // ✅ 3% 회복
+        int healAmount = Mathf.RoundToInt(controller.maxHealth * 0.03f);
+        controller.Heal(healAmount);
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
         {
-            pc.TakeDamage(damage); // ✅ 데미지만 적용
+            PlayerController pc = playerObj.GetComponent<PlayerController>();
+            PlayerStatusManager status = playerObj.GetComponent<PlayerStatusManager>();
+            Rigidbody2D playerRb = playerObj.GetComponent<Rigidbody2D>();
+
+            if (pc != null)
+            {
+                Vector2 dir = ((Vector2)(playerObj.transform.position - transform.position)).normalized + Vector2.up * 0.5f;
+                pc.ApplyKnockback(dir * knockbackForce);
+            }
+
+            if (status != null)
+                status.TriggerCameraShakeAndZoom();
         }
 
-        if (playerRb != null)
-        {
-            Vector2 dir = (playerObj.transform.position - transform.position).normalized;
-            playerRb.linearVelocity = Vector2.zero;
-            playerRb.AddForce(dir * knockbackForce, ForceMode2D.Impulse); // ✅ 넉백
-        }
+        // ✅ 즉시 납도
+        controller.LastSwordStrikeTime = -999f;
+        DoSwordStrike(controller.swordStrikeDuration);
 
-        if (status != null)
-        {
-            status.TriggerCameraShakeAndZoom(); // ✅ 연출만
-        }
+        StartCoroutine(RecoverMovementAfterDelay());
     }
 
-    StartCoroutine(RecoverMovementAfterDelay());
-}
+    private IEnumerator RecoverMovementAfterDelay()
+    {
+        yield return new WaitForSeconds(0.5f);
+        controller.SetCanMove(true);
+        controller.SetIsAttacking(false);
+    }
 
-
-private IEnumerator RecoverMovementAfterDelay()
-{
-    yield return new WaitForSeconds(0.5f); // 스턴 시간
-    controller.SetCanMove(true);
-}
-
-    // 사망
     public void DoDie()
     {
         anim.SetTrigger("Die");

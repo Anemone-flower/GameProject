@@ -181,7 +181,6 @@ void ExecuteFocusShot(int direction)
     {
         if (player == null)
         {
-            Debug.LogError("[집중] PlayerController가 null입니다!");
             return;
         }
 
